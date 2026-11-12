@@ -25,6 +25,7 @@ Route::put('/profile', [ProfileController::class, 'update'])->middleware('auth:s
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('products', [ProductController::class, 'index']);
+Route::get('products/3d-active', [ProductController::class, 'threeDProducts']);
 
 
 

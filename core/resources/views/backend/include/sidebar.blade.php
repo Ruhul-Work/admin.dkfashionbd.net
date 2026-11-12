@@ -783,6 +783,50 @@
         @endpermgroup
         {{-- offer management module end --}}
 
+        {{-- employee management module start --}}
+        @permgroup(['employee'])
+        <li class="sidebar-menu-group-title">Employee Management</li>
+        <li class="dropdown {{ Route::is('employee.*') ? 'active' : '' }}">
+            <a href="javascript:void(0)">
+                <iconify-icon icon="mdi:account-tie" class="menu-icon"></iconify-icon>
+                <span>Employees</span>
+            </a>
+            <ul class="sidebar-submenu">
+                <li class="{{ Route::is('employee.employees.index') ? 'active' : '' }}">
+                    <a href="{{ route('employee.employees.index') }}">
+                        <iconify-icon icon="mdi:account-group-outline" class="menu-icon"></iconify-icon>
+                        <span>Employee List</span>
+                    </a>
+                </li>
+                <li class="{{ Route::is('employee.employees.create') ? 'active' : '' }}">
+                    <a href="{{ route('employee.employees.create') }}">
+                        <iconify-icon icon="mdi:account-plus-outline" class="menu-icon"></iconify-icon>
+                        <span>Add Employee</span>
+                    </a>
+                </li>
+                <li class="{{ Route::is('employee.salaries.index') ? 'active' : '' }}">
+                    <a href="{{ route('employee.salaries.index') }}">
+                        <iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon>
+                        <span>Salary Assign</span>
+                    </a>
+                </li>
+                <li class="{{ Route::is('employee.salary-payments.index') ? 'active' : '' }}">
+                    <a href="{{ route('employee.salary-payments.index') }}">
+                        <iconify-icon icon="mdi:cash-refund" class="menu-icon"></iconify-icon>
+                        <span>Salary Payment</span>
+                    </a>
+                </li>
+                <li class="{{ Route::is('employee.ledger.index') ? 'active' : '' }}">
+                    <a href="{{ route('employee.ledger.index') }}">
+                        <iconify-icon icon="mdi:book-open-page-variant" class="menu-icon"></iconify-icon>
+                        <span>Employee Ledger</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        @endpermgroup
+        {{-- employee management module end --}}
+
         {{-- Reports module start --}}
         @permgroup(['reports'])
             <li class="sidebar-menu-group-title">Reports</li>

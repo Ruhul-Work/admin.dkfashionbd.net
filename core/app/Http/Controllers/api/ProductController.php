@@ -71,6 +71,19 @@ class ProductController extends Controller
         return response()->json(['success' => true, 'data' => $products]);
     }
 
+    public function threeDProducts()
+    {
+        $products = Product::with('category')
+            ->where('is_active', 1)
+            ->whereNull('parent_id')
+            ->where('3d_active', 1)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $products]);
+    }
+
     public function show(Request $request, $slug)
     {
         $product = Product::with(['category', 'children.size', 'children.color', 'specifications'])->where('slug', $slug)->where('is_active', 1)->first();

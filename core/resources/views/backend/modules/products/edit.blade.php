@@ -471,6 +471,31 @@
                                             </div>
                                         </div>
 
+                                        {{-- 3D image section --}}
+                                        <div class="col-12"><div class="fw-semibold my-2">3D Image Section</div></div>
+
+                                        @foreach (['front_view' => 'Front View', 'back_view' => 'Back View', 'side_view' => 'Side View'] as $field => $label)
+                                            <div class="col-lg-3 col-sm-6 col-12">
+                                                <div class="mb-3">
+                                                    <label class="form-label">{{ $label }}</label>
+                                                    <input type="hidden" name="remove_{{ $field }}" id="remove_{{ $field }}" value="0">
+                                                    <div class="form-group">
+                                                        <div class="row" id="{{ $field }}"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                        <div class="col-12 mb-8">
+                                            <label class="form-label text-sm mb-8">3D Active?</label>
+                                            <div class="form-switch switch-purple d-flex align-items-center gap-3">
+                                                <input type="hidden" name="3d_active" value="0">
+                                                <input class="form-check-input" type="checkbox" name="3d_active"
+                                                    value="1" id="threeDActive" {{ $product->{'3d_active'} ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="threeDActive">Enable 3D view</label>
+                                            </div>
+                                        </div>
+
                                         <div class="row">
                                             <div class="col-12 mb-8">
                                                 <label class="form-label text-sm mb-8">Active?</label>
@@ -1249,7 +1274,7 @@
 
         $("#image").spartanMultiImagePicker({
             fieldName: 'image[]',
-            maxCount: 3,
+            maxCount: 8,
             rowHeight: '200px',
             groupClassName: 'col',
             maxFileSize: '',
@@ -1312,6 +1337,38 @@
                 alert('File size too big max:2MB');
             }
         });
+
+        @foreach (['front_view', 'back_view', 'side_view'] as $field)
+            @if (!empty($product->{$field}))
+                (function () {
+                    var previousImageUrl = "{{ image($product->{$field}) }}";
+                    if (previousImageUrl) {
+                        $("#{{ $field }}").append(
+                            '<div class="existing-image-wrapper" style="position:relative; display:inline-block; margin:5px;">' +
+                            '<img src="' + previousImageUrl +
+                            '" style="height:200px; width:auto; border:1px solid #ccc; border-radius:5px;">' +
+                            '<button type="button" class="btn-cancel-old bg-red px-1 py-0 " style="position:absolute; top:5px; right:5px;" data-remove="remove_{{ $field }}">✕</button>' +
+                            '</div>'
+                        );
+                    }
+                })();
+            @endif
+
+            $("#{{ $field }}").spartanMultiImagePicker({
+                fieldName: '{{ $field }}',
+                maxCount: 1,
+                rowHeight: '200px',
+                groupClassName: 'col',
+                maxFileSize: '',
+                dropFileLabel: "Drop Here",
+                onExtensionErr: function (index, file) {
+                    alert('Please only input png or jpg type file')
+                },
+                onSizeErr: function (index, file) {
+                    alert('File size too big max:2MB');
+                }
+            });
+        @endforeach
 
         @if (!empty($product->meta_image))
             var previousImageUrl = "{{ image($product->meta_image) }}"; // Blade variable

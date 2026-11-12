@@ -14,7 +14,7 @@ class SyncProductToSecondApp implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries   = 5;
+    public $tries = 5;
     public $backoff = [10, 30, 60, 120, 300];
 
     public function __construct(public int $productId)
@@ -46,7 +46,7 @@ class SyncProductToSecondApp implements ShouldQueue
             'children.specifications',
         ])->find($this->productId);
 
-        if (! $parent) {
+        if (!$parent) {
             Log::warning('Sync skipped: parent product not found', ['id' => $this->productId]);
             return;
         }
@@ -80,11 +80,11 @@ class SyncProductToSecondApp implements ShouldQueue
 
         Log::info('app2 raw response', [
             'product_id' => $product->id,
-            'status'     => $response->status(),
-            'body'       => $response->body(),
+            'status' => $response->status(),
+            'body' => $response->body(),
         ]);
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             throw new \Exception(
                 "app2 sync failed for product id {$product->id} (sku: {$product->sku}): "
                 . $response->status() . ' - ' . $response->body()
@@ -93,14 +93,14 @@ class SyncProductToSecondApp implements ShouldQueue
 
         $app2ProductId = $response->json('data.id');
 
-        if (! $app2ProductId) {
+        if (!$app2ProductId) {
             throw new \Exception("app2 response e product id paoa jayni. Response: " . $response->body());
         }
 
         Log::info('Single product synced to app2', [
             'app1_id' => $product->id,
             'app2_id' => $app2ProductId,
-            'sku'     => $product->sku,
+            'sku' => $product->sku,
         ]);
 
         return $app2ProductId;
@@ -109,37 +109,38 @@ class SyncProductToSecondApp implements ShouldQueue
     private function buildPayload(Product $product, ?int $app2ParentId): array
     {
         return [
-            'name'               => $product->name,
-            'sku'                => $product->sku,
-            'slug'               => $product->slug,
-            'barcode'            => $product->barcode,
-            'parent_id'          => $app2ParentId,
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'slug' => $product->slug,
+            'barcode' => $product->barcode,
+            'parent_id' => $app2ParentId,
 
             'category_type_name' => $product->category_type?->name,
-            'category_name'      => $product->category?->name,
-            'subcategory_name'   => $product->subcategory?->name,
-            'product_type_name'  => $product->product_type?->name,
-            'brand_name'         => $product->brand?->name,
-            'unit_name'          => $product->unit?->name,
-            'color_name'         => $product->color?->name,
-            'size_name'          => $product->size?->name,
-            'paper_name'         => $product->paper_quality?->name,
+            'category_name' => $product->category?->name,
+            'subcategory_name' => $product->subcategory?->name,
+            'product_type_name' => $product->product_type?->name,
+            'brand_name' => $product->brand?->name,
+            'unit_name' => $product->unit?->name,
+            'color_name' => $product->color?->name,
+            'size_name' => $product->size?->name,
+            'paper_name' => $product->paper_quality?->name,
 
-            'is_active'          => $product->is_active,
-            'has_variant'        => $product->has_variants,
-            'material'           => $product->material,
-            'weight_gsm'         => $product->specifications?->weight_gsm ?? $product->weight ?? null,
-            'fabric_weave'       => $product->specifications?->fabric_weave,
-            'fabric_type'        => $product->specifications?->fabric_type,
-            'origin_country'     => $product->specifications?->origin_country,
-            'care_instructions'  => $product->specifications?->care_instructions,
-            'durability_rating'  => $product->specifications?->durability_rating,
-            'transparency_text'  => $product->specifications?->transparency_text,
-            'description'        => $product->description,
-            'short_description'  => $product->short_description,
-            'meta_title'         => $product->meta_title,
-            'meta_description'   => $product->meta_description,
-            'meta_keywords'      => $product->meta_keywords,
+            'is_active' => $product->is_active,
+            '3d_active' => $product->{'3d_active'},
+            'has_variant' => $product->has_variants,
+            'material' => $product->material,
+            'weight_gsm' => $product->specifications?->weight_gsm ?? $product->weight ?? null,
+            'fabric_weave' => $product->specifications?->fabric_weave,
+            'fabric_type' => $product->specifications?->fabric_type,
+            'origin_country' => $product->specifications?->origin_country,
+            'care_instructions' => $product->specifications?->care_instructions,
+            'durability_rating' => $product->specifications?->durability_rating,
+            'transparency_text' => $product->specifications?->transparency_text,
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+            'meta_title' => $product->meta_title,
+            'meta_description' => $product->meta_description,
+            'meta_keywords' => $product->meta_keywords,
         ];
     }
 
@@ -148,7 +149,7 @@ class SyncProductToSecondApp implements ShouldQueue
         $attachments = [];
 
         $imagePaths = $this->normalizePaths($product->images);
-        if (! empty($imagePaths)) {
+        if (!empty($imagePaths)) {
             foreach ($imagePaths as $path) {
                 $file = $this->createAttachment($path);
                 if ($file) {
@@ -166,6 +167,17 @@ class SyncProductToSecondApp implements ShouldQueue
 
         if ($thumbnail = $this->createAttachment($product->thumbnail_image)) {
             $attachments['thumbnail_image'][] = $thumbnail;
+        }
+        if ($front_view = $this->createAttachment($product->front_view)) {
+            $attachments['front_view'][] = $front_view;
+        }
+
+        if ($back_view = $this->createAttachment($product->back_view)) {
+            $attachments['back_view'][] = $back_view;
+        }
+
+        if ($side_view = $this->createAttachment($product->side_view)) {
+            $attachments['side_view'][] = $side_view;
         }
 
         if ($sizeChart = $this->createAttachment($product->size_chart_image)) {
@@ -195,14 +207,14 @@ class SyncProductToSecondApp implements ShouldQueue
         $fullPath = dirname(base_path()) . DIRECTORY_SEPARATOR . $path;
         $fullPath = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $fullPath);
 
-        if (! file_exists($fullPath)) {
+        if (!file_exists($fullPath)) {
             Log::warning("File not found for sync: $fullPath");
             return null;
         }
 
         return [
             'contents' => file_get_contents($fullPath),
-            'name'     => basename($fullPath),
+            'name' => basename($fullPath),
         ];
     }
 
@@ -228,7 +240,7 @@ class SyncProductToSecondApp implements ShouldQueue
     {
         Log::error('Product sync to app2 permanently failed after all retries', [
             'product_id' => $this->productId,
-            'error'      => $exception->getMessage(),
+            'error' => $exception->getMessage(),
         ]);
     }
 }

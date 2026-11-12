@@ -371,6 +371,44 @@
                                         </div>
                                     </div>
 
+                                    {{-- 3D image section --}}
+                                    <div class="col-12"><div class="fw-semibold my-2">3D Image Section</div></div>
+
+                                    <div class="col-lg-3 col-sm-6 col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label">Front View</label>
+                                            <div class="form-group">
+                                                <div class="row" id="front_view"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-6 col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label">Back View</label>
+                                            <div class="form-group">
+                                                <div class="row" id="back_view"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-sm-6 col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label">Side View</label>
+                                            <div class="form-group">
+                                                <div class="row" id="side_view"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mb-8">
+                                        <label class="form-label text-sm mb-8">3D Active?</label>
+                                        <div class="form-switch switch-purple d-flex align-items-center gap-3">
+                                            <input type="hidden" name="3d_active" value="0">
+                                            <input class="form-check-input" type="checkbox" name="3d_active"
+                                                value="1" id="threeDActive">
+                                            <label class="form-check-label" for="threeDActive">Enable 3D view</label>
+                                        </div>
+                                    </div>
+
                                         <div class="row">
                                             <div class="col-12 mb-8">
                                                 <label class="form-label text-sm mb-8">Active?</label>
@@ -1062,7 +1100,7 @@
 
         $("#image").spartanMultiImagePicker({
             fieldName: 'images[]',
-            maxCount: 3,
+            maxCount: 8,
             rowHeight: '200px',
             groupClassName: 'col',
             maxFileSize: '',
@@ -1109,6 +1147,23 @@
                 console.log(index, file, 'file size too big');
                 alert('File size too big max:250KB');
             }
+        });
+
+        ["front_view", "back_view", "side_view"].forEach(function (name) {
+            $("#" + name).spartanMultiImagePicker({
+                fieldName: name,
+                maxCount: 1,
+                rowHeight: '200px',
+                groupClassName: 'col',
+                maxFileSize: '',
+                dropFileLabel: "Drop Here",
+                onExtensionErr: function (index, file) {
+                    alert('Please only input png or jpg type file')
+                },
+                onSizeErr: function (index, file) {
+                    alert('File size too big max:2MB');
+                }
+            });
         });
 
         $("#meta_image").spartanMultiImagePicker({

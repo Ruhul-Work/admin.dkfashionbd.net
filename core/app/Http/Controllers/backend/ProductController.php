@@ -381,6 +381,10 @@ class ProductController extends Controller
                 'images.*'          => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'thumbnail_image'   => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 'size_chart_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'front_view'        => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'back_view'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'side_view'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                '3d_active'         => ['nullable', 'in:0,1'],
                 'meta_title'        => ['nullable', 'string', 'max:150'],
                 'meta_description'  => ['nullable', 'string', 'max:350'],
                 'meta_keywords'     => ['nullable', 'string', 'max:250'],
@@ -441,6 +445,18 @@ class ProductController extends Controller
         if ($req->hasFile('size_chart_image')) {
             $size_chart_image = uploadImage($req->file('size_chart_image'), 'product/size_chart_images');
         }
+        $front_view = null;
+        if ($req->hasFile('front_view')) {
+            $front_view = uploadImage($req->file('front_view'), 'product/front_view_images');
+        }
+        $back_view = null;
+        if ($req->hasFile('back_view')) {
+            $back_view = uploadImage($req->file('back_view'), 'product/back_view_images');
+        }
+        $side_view = null;
+        if ($req->hasFile('side_view')) {
+            $side_view = uploadImage($req->file('side_view'), 'product/side_view_images');
+        }
         $metaImagePath = null;
         if ($req->hasFile('meta_image')) {
             $metaImagePath = uploadImage($req->file('meta_image'), 'product/meta_images');
@@ -476,6 +492,10 @@ class ProductController extends Controller
             'images'            => json_encode($imagePaths),
             'thumbnail_image'   => $thumbnail_image,
             'size_chart_image'  => $size_chart_image,
+            'front_view'        => $front_view,
+            'back_view'         => $back_view,
+            'side_view'         => $side_view,
+            '3d_active'         => $req->input('3d_active', 0),
             'meta_image'        => $metaImagePath,
 
         ]);
@@ -696,6 +716,10 @@ class ProductController extends Controller
                 'image.*'           => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'thumbnail_image'   => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'size_chart_image'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'front_view'        => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'back_view'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'side_view'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                '3d_active'         => ['nullable', 'in:0,1'],
                 'meta_title'        => ['nullable', 'string', 'max:150'],
                 'meta_description'  => ['nullable', 'string', 'max:350'],
                 'meta_keywords'     => ['nullable', 'string', 'max:250'],
@@ -766,6 +790,9 @@ class ProductController extends Controller
         $previousThumbnailImage = $product->thumbnail_image;
         $previousSizeImage      = $product->size_chart_image;
         $previousMetaImage      = $product->meta_image;
+        $previousFrontView      = $product->front_view;
+        $previousBackView       = $product->back_view;
+        $previousSideView       = $product->side_view;
 
         $existing_images = $req->input('existing_images', []);
         $new_images = [];
@@ -776,7 +803,7 @@ class ProductController extends Controller
         }
 
         $final_images = array_merge($existing_images, $new_images);
-        $final_images = array_slice($final_images, 0, 3); // max 3 images
+        $final_images = array_slice($final_images, 0, 8); // max 8 images
 
         // Delete removed images from storage
         $old_images = json_decode($product->images, true) ?: [];
@@ -835,6 +862,23 @@ class ProductController extends Controller
             }
             $product->size_chart_image = null;
         }
+
+        foreach (['front_view' => 'front_view_images', 'back_view' => 'back_view_images', 'side_view' => 'side_view_images'] as $field => $folder) {
+            $previous = $product->{$field};
+            if ($req->hasFile($field)) {
+                $path = uploadImage($req->file($field), 'product/' . $folder);
+                $product->{$field} = $path;
+                if ($previous && file_exists($previous)) {
+                    @unlink($previous);
+                }
+            } elseif ($req->{'remove_' . $field} == 1) {
+                if ($previous && file_exists($previous)) {
+                    @unlink($previous);
+                }
+                $product->{$field} = null;
+            }
+        }
+        $product->{'3d_active'} = $req->boolean('3d_active') ? 1 : 0;
 
         $variantImagePath     = json_decode($product->images);
         $variantThumbnailPath = $product->thumbnail_image;
@@ -1171,6 +1215,9 @@ class ProductController extends Controller
         $metaImagePath      = $product->meta_image;
         $thumbnailImagePath = $product->thumbnail_image;
         $sizeImagePath      = $product->size_chart_image;
+        $frontViewPath      = $product->{'front_view'};
+        $backViewPath       = $product->{'back_view'};
+        $sideViewPath       = $product->{'side_view'};
 
         Product::where('parent_id', $product->id)->delete();
         $product->delete();
@@ -1197,6 +1244,11 @@ class ProductController extends Controller
         }
         if (isset($sizeImagePath) && file_exists($sizeImagePath)) {
             unlink($sizeImagePath);
+        }
+        foreach ([$frontViewPath, $backViewPath, $sideViewPath] as $p) {
+            if ($p && file_exists($p)) {
+                @unlink($p);
+            }
         }
 
         return response()->json(['ok' => true, 'msg' => 'product deleted']);
